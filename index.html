@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PromptForge — AI Prompt Optimizer & Sandbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
+    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- Header / Navbar -->
+  <header class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-700">
+    <div class="flex items-center space-x-3">
+      <div class="bg-indigo-600 text-white p-2 rounded-lg font-bold text-xl">⚡</div>
+      <div>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">PromptForge</h1>
+        <p class="text-xs text-slate-400">AI Prompt Engineer & Execution Sandbox</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button onclick="toggleSettingsModal()" class="px-4 py-2 text-sm rounded-lg glass hover:bg-slate-700 transition">
+        ⚙️ Settings & API Key
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="container mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+    
+    <!-- Left Column: Input & Refinement -->
+    <section class="flex flex-col gap-4">
+      <div class="glass p-5 rounded-2xl flex flex-col flex-grow">
+        <label for="rawPrompt" class="text-sm font-semibold text-slate-300 mb-2 flex justify-between items-center">
+          <span>1. Enter Your Rough Prompt Idea</span>
+          <span class="text-xs text-slate-400">Targeting high-quality system structure</span>
+        </label>
+        <textarea id="rawPrompt" rows="6" class="w-full bg-slate-900 text-slate-100 rounded-xl p-3 border border-slate-700 focus:outline-none focus:border-indigo-500 resize-none text-sm" placeholder="e.g., Write a python script to scrape data from a website and save to csv..."></textarea>
+        
+        <div class="mt-4 flex gap-3">
+          <button onclick="optimizePrompt()" id="optimizeBtn" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
+            ✨ Engineer & Optimize
+          </button>
+        </div>
+      </div>
+
+      <!-- Optimized Output Container -->
+      <div class="glass p-5 rounded-2xl flex flex-col flex-grow">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm font-semibold text-slate-300">2. Refined & Structured Prompt</span>
+          <button onclick="copyToClipboard('optimizedPrompt')" class="text-xs text-indigo-400 hover:underline">Copy</button>
+        </div>
+        <textarea id="optimizedPrompt" rows="8" class="w-full bg-slate-900 text-indigo-200 rounded-xl p-3 border border-slate-700 focus:outline-none focus:border-indigo-500 resize-none font-mono text-xs" placeholder="Your engineered prompt with Role, Task, Constraints, and Output Format will appear here..."></textarea>
+        
+        <div class="mt-4">
+          <button onclick="testPrompt()" id="testBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
+            🚀 Test Prompt in Sandbox
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Output Sandbox -->
+    <section class="glass p-5 rounded-2xl flex flex-col">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm font-semibold text-slate-300">3. Execution Sandbox Response</span>
+        <span id="modelBadge" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md">Model: Llama 3.3 70B</span>
+      </div>
+      <div id="sandboxOutput" class="w-full flex-grow bg-slate-900 text-slate-200 rounded-xl p-4 border border-slate-700 overflow-y-auto font-sans text-sm whitespace-pre-wrap leading-relaxed">
+        <span class="text-slate-500 italic">Output from testing your optimized prompt will be streamed here in real time...</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50">
+    <div class="glass p-6 rounded-2xl max-w-md w-full mx-4 border border-slate-700">
+      <h2 class="text-lg font-bold mb-4">Configuration & API Keys</h2>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Provider</label>
+          <select id="providerSelect" class="w-full bg-slate-900 text-slate-200 rounded-lg p-2.5 border border-slate-700 text-sm">
+            <option value="groq">Groq Cloud (Free Tier - Recommended)</option>
+            <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">API Key</label>
+          <input type="password" id="apiKeyInput" class="w-full bg-slate-900 text-slate-200 rounded-lg p-2.5 border border-slate-700 text-sm" placeholder="gsk_... or sk-..." />
+          <p class="text-[11px] text-slate-400 mt-1">Get a free key instantly at <a href="https://console.groq.com" target="_blank" class="text-indigo-400 underline">console.groq.com</a></p>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <button onclick="toggleSettingsModal()" class="px-4 py-2 text-xs rounded-lg bg-slate-700 hover:bg-slate-600 transition">Close</button>
+        <button onclick="saveSettings()" class="px-4 py-2 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-500 transition font-semibold">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Implementation -->
+  <script>
+    // State Persistence
+    let apiKey = localStorage.getItem('pf_api_key') || '';
+    let provider = localStorage.getItem('pf_provider') || 'groq';
+
+    document.getElementById('apiKeyInput').value = apiKey;
+    document.getElementById('providerSelect').value = provider;
+
+    function toggleSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function saveSettings() {
+      apiKey = document.getElementById('apiKeyInput').value.trim();
+      provider = document.getElementById('providerSelect').value;
+      
+      localStorage.setItem('pf_api_key', apiKey);
+      localStorage.setItem('pf_provider', provider);
+      
+      document.getElementById('modelBadge').innerText = `Model: ${provider === 'groq' ? 'Llama 3.3 70B' : 'GPT-4o-mini'}`;
+      toggleSettingsModal();
+    }
+
+    function copyToClipboard(elementId) {
+      const text = document.getElementById(elementId).value;
+      if (text) {
+        navigator.clipboard.writeText(text);
+        alert('Copied to clipboard!');
+      }
+    }
+
+    // Core AI Optimization Logic
+    async function optimizePrompt() {
+      const rawPrompt = document.getElementById('rawPrompt').value.trim();
+      if (!rawPrompt) return alert('Please enter a prompt idea first.');
+      if (!apiKey) return toggleSettingsModal();
+
+      const btn = document.getElementById('optimizeBtn');
+      btn.innerText = '✨ Optimizing...';
+      btn.disabled = true;
+
+      const metaSystemPrompt = `You are an expert Prompt Engineer. Transform the user's unorganized prompt idea into a highly detailed, professional, structured prompt template. Use clear sections like [Role], [Context], [Task], [Constraints], and [Expected Output Format]. Return ONLY the engineered prompt text without commentary.`;
+
+      try {
+        const responseText = await callLLMAPI(metaSystemPrompt, rawPrompt);
+        document.getElementById('optimizedPrompt').value = responseText.trim();
+      } catch (err) {
+        alert(`Error: ${err.message}`);
+      } finally {
+        btn.innerText = '✨ Engineer & Optimize';
+        btn.disabled = false;
+      }
+    }
+
+    // Execution Test Logic
+    async function testPrompt() {
+      const promptToTest = document.getElementById('optimizedPrompt').value.trim();
+      if (!promptToTest) return alert('No optimized prompt available to test.');
+      if (!apiKey) return toggleSettingsModal();
+
+      const outputDiv = document.getElementById('sandboxOutput');
+      const btn = document.getElementById('testBtn');
+      
+      outputDiv.innerText = 'Executing model query...';
+      btn.innerText = '⏳ Running Sandbox Test...';
+      btn.disabled = true;
+
+      try {
+        const result = await callLLMAPI("You are a helpful assistant.", promptToTest);
+        outputDiv.innerText = result;
+      } catch (err) {
+        outputDiv.innerText = `Execution Error: ${err.message}`;
+      } finally {
+        btn.innerText = '🚀 Test Prompt in Sandbox';
+        btn.disabled = false;
+      }
+    }
+
+    // Universal Fetch Controller
+    async function callLLMAPI(systemContent, userContent) {
+      let url = '';
+      let headers = { 'Content-Type': 'application/json' };
+      let modelName = '';
+
+      if (provider === 'groq') {
+        url = 'https://api.groq.com/openai/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        modelName = 'llama-3.3-70b-versatile';
+      } else {
+        url = 'https://api.openai.com/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        modelName = 'gpt-4o-mini';
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            { role: 'system', content: systemContent },
+            { role: 'user', content: userContent }
+          ],
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || 'API request failed.');
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    }
+  </script>
+</body>
+</html>
